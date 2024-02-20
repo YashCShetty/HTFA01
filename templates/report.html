@@ -24,59 +24,55 @@
 
   <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
   
-  <style>
-      #chartsContainer {
-          display: flex;
-          flex-flow: wrap row;
-          gap: 1em;
-      }
+  <title>CSV Data Graph and Table</title>
+    <!-- Import Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .cluster-header {
+            background-color: #36a2eb;
+            color: white;
+        }
+        .cluster-odd {
+            background-color: #e9e9e9;
+        }
+        .cluster-even {
+            background-color: #f5f5f5;
+        }
 
-      canvas {
-          flex: 1 0 auto;
-          max-width: 200px;
-          max-height: 300px;
-      }
+        #chartsContainer {
+            display: flex;
+            flex-flow: wrap row;
+            gap: 1em;
+            margin-bottom: 20px; /* Add space between charts and table */
+        }
 
-      #chartsContainer1 {
-          display: flex;
-          flex-flow: wrap row;
-          gap: 1em;
-      }
+        canvas {
+            flex: 1 0 auto;
+            max-width: 500px;
+            max-height: 300px;
+        }
 
-      canvas1 {
-          flex: 1 0 auto;
-          max-width: 300px;
-          max-height: 300px;
-      }
-
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-    }
-    table {
-        border-collapse: collapse;
-        width: 100%;
-        margin-top: 20px;
-    }
-    th, td {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-    }
-    th {
-        background-color: #f2f2f2;
-    }
-    .cluster-header {
-        background-color: #36a2eb;
-        color: white;
-    }
-    .cluster-odd {
-        background-color: #e9e9e9;
-    }
-    .cluster-even {
-        background-color: #f5f5f5;
-    }
-  </style>
+        #dataTable {
+            margin-top: 20px; /* Add space between charts and table */
+        }
+    </style>
 </head>
 
 <body>
@@ -119,7 +115,7 @@
       <h1>Dashboard</h1>
       <nav>
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Chart</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Charts</a></li>
           <li class="breadcrumb-item active">UserCategories</li>
         </ol>
       </nav>
@@ -128,9 +124,16 @@
     <div id="chartsContainer"></div>
     <div id="dataTable"></div>
 
+    <div id="chartsContainer"></div>
+
+    <div id="dataTable"></div>
+
     <script>
         // URL of the CSV file
         const csvUrl = "{{ url_for('static', filename='clustering_result.csv') }}";
+
+        // Predefined colors for clusters
+        const clusterColors = ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff', '#ff9f40', '#33cc33', '#ff6633'];
 
         // Fetch CSV data
         fetch(csvUrl)
@@ -144,7 +147,7 @@
         function handleCSVData(csv) {
             const data = parseCSV(csv);
             populateTable(data);
-            renderChart(data);
+            renderGraphs(data);
         }
 
         // Function to parse CSV data
@@ -199,40 +202,50 @@
                 dataTable.appendChild(row);
             }
         }
+        
 
-        // Function to render chart using Chart.js
-        function renderChart(data) {
+        // Function to render graphs using Chart.js
+        function renderGraphs(data) {
             const chartsContainer = document.getElementById('chartsContainer');
+            chartsContainer.innerHTML = '';
 
-            Object.keys(data).forEach(cluster => {
-                const canvas = document.createElement('canvas');
-                canvas.width = 400;
-                canvas.height = 200;
-                chartsContainer.appendChild(canvas);
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 200;
+            chartsContainer.appendChild(canvas);
 
-                const ctx = canvas.getContext('2d');
-                const myChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: [`Cluster ${cluster}`],
-                        datasets: [{
-                            label: `Cluster ${cluster}`,
-                            data: [data[cluster].length],
-                            backgroundColor: '#36a2eb',
-                            borderColor: '#ffffff',
-                            borderWidth: 1
+            const ctx = canvas.getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data).map(cluster => `Cluster ${cluster}`),
+                    datasets: [{
+                        label: 'Number of Users',
+                        data: Object.values(data).map(cluster => cluster.length),
+                        backgroundColor: clusterColors, // Use predefined colors
+                        borderColor: '#ffffff',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number of Users'
+                            },
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }],
+                        xAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Cluster'
+                            }
                         }]
-                    },
-                    options: {
-                        scales: {
-                            yAxes: [{
-                                ticks: {
-                                    beginAtZero: true
-                                }
-                            }]
-                        }
                     }
-                });
+                }
             });
         }
     </script>
