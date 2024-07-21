@@ -113,7 +113,7 @@ def cluster(num_clusters):
     # Perform K-means clustering
     kmeans = KMeans(n_clusters=num_clusters, random_state=42)
     kmeans.fit(normalized_data)
-
+    # Clustering 
     # Assign cluster labels to users
     pivot_df['Cluster'] = kmeans.labels_
 
